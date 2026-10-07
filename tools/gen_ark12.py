@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 gen_ark12.py -- turn Ark Pixel Font's 12px glyph PNGs into the C table in
-components/ark12/ark12.h.
+fonts/ark12/ark12.h.
 
 Why this exists at all, and why its output is committed while font8x8's is
 not: Ark Pixel does not ship a single header, or even a single font file
@@ -307,7 +307,7 @@ HEADER = """/*
  * and cannot be. It is a format conversion of OFL-licensed Font Software,
  * which makes it a Modified Version under the OFL, and OFL section 5
  * requires Modified Versions to stay under the OFL. The full text is in
- * components/ark12/LICENSE-OFL and must ship with any redistribution of
+ * fonts/ark12/LICENSE-OFL and must ship with any redistribution of
  * this file or of a binary containing it. Ark Pixel declares no Reserved
  * Font Name, so this derivative does not have to be renamed -- but it
  * also must not be sold on its own, and this header must stay attached.
@@ -520,7 +520,7 @@ def emit(glyphs: dict[int, tuple[int, list[int]]], outdir: str, commit: str) -> 
         flag = "   <-- EMPTY, is this range drawn at this size?" if n == 0 else ""
         print(f"    U+{lo:04X}..U+{hi:04X}  {n:6d}{flag}", file=sys.stderr)
 
-    # The number components/ark12/README.md quotes for trimming. Printed
+    # The number fonts/ark12/README.md quotes for trimming. Printed
     # rather than left as a claim nobody re-checks after changing RANGES;
     # 5247 measures it as tiles, the way it would be stored.
     kept = {cp: glyphs[cp] for cp in order if not (0x4E00 <= cp <= 0x9FFF)}
@@ -574,7 +574,7 @@ def main() -> None:
     ap.add_argument("--reencode", metavar="ARK12_C",
                     help="take the glyphs from an ark12.c written before (5247)")
     ap.add_argument("--out", default=os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "components", "ark12"))
+        os.path.dirname(os.path.abspath(__file__)), "..", "fonts", "ark12"))
     args = ap.parse_args()
 
     if args.reencode:

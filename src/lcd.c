@@ -1,6 +1,32 @@
+/*
+ * lcd.c -- the Tab5's panel and backlight. See lcd.h.
+ *
+ * Carved out of defeatist-music-player-for-m5tab5's player.c, where it
+ * was never a module of its own; the import commit records which lines.
+ * The comments are as they were there, and "this file" in them means
+ * player.c.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include "lcd.h"
+
+#include "driver/gpio.h"
+#include "driver/ledc.h"
+#include "esp_check.h"
+#include "esp_idf_version.h"
+#include "esp_lcd_mipi_dsi.h"
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
+#include "esp_lcd_st7121.h"
+#include "esp_ldo_regulator.h"
+#include "esp_log.h"
+#include "hal/axi_icm_ll.h"
+
+static const char *TAG = "tab5_lcd";
+
 /* ---- Display: ST7121 MIPI-DSI, portrait native ---- */
-#define LCD_H_RES               (720)
-#define LCD_V_RES               (1280)
+/* LCD_H_RES, LCD_V_RES: lcd.h */
 #define LCD_BITS_PER_PIXEL      (16)
 #define DSI_DATA_LANES          (2)
 /*
@@ -95,7 +121,7 @@
 #define LCD_LEDC_CHANNEL        (LEDC_CHANNEL_1)
 #define LCD_LEDC_TIMER          (LEDC_TIMER_0)
 #define LCD_LEDC_DUTY_RES       (LEDC_TIMER_12_BIT)
-#define LCD_LEDC_DUTY_MAX       (4095)
+/* LCD_LEDC_DUTY_MAX: lcd.h */
 #define LCD_LEDC_FREQ_HZ        (5000)
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
@@ -129,7 +155,7 @@ static esp_err_t backlight_init(void)
     return ledc_channel_config(&ch);
 }
 
-static esp_err_t backlight_set(int percent)
+esp_err_t lcd_backlight_set(int percent)
 {
     percent = percent < 0 ? 0 : (percent > 100 ? 100 : percent);
     const uint32_t duty = (LCD_LEDC_DUTY_MAX * percent) / 100;
@@ -140,7 +166,7 @@ static esp_err_t backlight_set(int percent)
 
 /* The backlight in counts, 0..LCD_LEDC_DUTY_MAX, for the fade, which
  * needs finer steps than whole percent. */
-static esp_err_t backlight_set_counts(uint32_t duty)
+esp_err_t lcd_backlight_set_counts(uint32_t duty)
 {
     if (duty > LCD_LEDC_DUTY_MAX) duty = LCD_LEDC_DUTY_MAX;
     ESP_RETURN_ON_ERROR(ledc_set_duty(LEDC_LOW_SPEED_MODE, LCD_LEDC_CHANNEL, duty),
@@ -250,4 +276,17 @@ static esp_err_t panel_init(void)
     ESP_RETURN_ON_ERROR(esp_lcd_panel_disp_on_off(s_panel, true), TAG, "disp on");
     ESP_LOGI(TAG, "ST7121 initialised (%dx%d)", LCD_H_RES, LCD_V_RES);
     return ESP_OK;
+}
+
+esp_err_t lcd_init(esp_lcd_panel_handle_t *out)
+{
+    ESP_RETURN_ON_ERROR(backlight_init(), TAG, "backlight");
+    ESP_RETURN_ON_ERROR(panel_init(), TAG, "panel");
+    if (out) *out = s_panel;
+    return ESP_OK;
+}
+
+esp_lcd_panel_handle_t lcd_panel(void)
+{
+    return s_panel;
 }

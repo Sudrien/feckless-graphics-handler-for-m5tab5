@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 gen_arabixel.py -- turn Arabixel Basic's Arabic glyphs into the C table in
-components/arabixel/arabixel_tab.c.
+fonts/arabixel/arabixel_tab.c.
 
 Arabixel Basic (https://arabiandev.itch.io/arabixel-basic-font) is an 11px
 pixel font drawn as outlines on a 2048/11 unit grid, so each glyph is
 recovered exactly by testing the centre of every pixel cell against the
 outline. The font file is committed beside the table
-(components/arabixel/Arabixel_Basic.ttf), and this script is run by hand
+(fonts/arabixel/Arabixel_Basic.ttf), and this script is run by hand
 when it changes, like gen_ark12.py.
 
 Kept: the Arabic block (U+0600..06FF) and the two Presentation Forms
@@ -49,7 +49,7 @@ from fontTools.pens.pointInsidePen import PointInsidePen
 from fontTools.ttLib import TTFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-COMP = os.path.join(HERE, "..", "components", "arabixel")
+COMP = os.path.join(HERE, "..", "fonts", "arabixel")
 TTF = os.path.join(COMP, "Arabixel_Basic.ttf")
 OUT = os.path.join(COMP, "arabixel_tab.c")
 

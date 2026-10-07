@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../main/bidiline.h"
+#include "bidiline.h"
 
 static int checks, failures;
 

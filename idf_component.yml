@@ -1,0 +1,15 @@
+version: "0.1.0"
+description: >-
+  The M5Stack Tab5's ST7121 panel and backlight, and gfx: a rotating
+  RGB565 framebuffer with a DMA2D blit, Ark Pixel 12px text with
+  CJK, Arabic shaping and right-to-left lines.
+url: https://github.com/Sudrien/feckless-graphics-handler-for-tab5
+license: MIT
+
+dependencies:
+  idf:
+    version: ">=5.4.2"
+
+  # Moved here from defeatist-music-player-for-m5tab5's
+  # main/idf_component.yml with the panel bring-up; the pin is as it was.
+  espressif/esp_lcd_st7121: "^1.0.0"

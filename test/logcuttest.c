@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../main/logcut.h"
+#include "logcut.h"
 
 static int checks, failures;
 

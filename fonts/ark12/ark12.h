@@ -14,7 +14,7 @@
  * and cannot be. It is a format conversion of OFL-licensed Font Software,
  * which makes it a Modified Version under the OFL, and OFL section 5
  * requires Modified Versions to stay under the OFL. The full text is in
- * components/ark12/LICENSE-OFL and must ship with any redistribution of
+ * fonts/ark12/LICENSE-OFL and must ship with any redistribution of
  * this file or of a binary containing it. Ark Pixel declares no Reserved
  * Font Name, so this derivative does not have to be renamed -- but it
  * also must not be sold on its own, and this header must stay attached.
