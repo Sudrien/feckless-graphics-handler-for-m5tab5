@@ -26,7 +26,7 @@ here.
 # main/idf_component.yml
 dependencies:
   feckless_graphics_handler:
-    git: https://github.com/Sudrien/feckless-graphics-handler-for-tab5.git
+    git: https://github.com/Sudrien/feckless-graphics-handler-for-m5tab5.git
     version: "v0.1.0"
 ```
 
