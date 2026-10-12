@@ -148,8 +148,13 @@ esp_err_t gfx_init(esp_lcd_panel_handle_t panel, int w, int h)
     ESP_RETURN_ON_ERROR(esp_lcd_dpi_panel_register_event_callbacks(panel, &cbs, NULL),
                         TAG, "blit callback");
 
-    s_fb = heap_caps_malloc((size_t)w * h * sizeof(uint16_t),
-                            MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    /* Aligned to 128 bytes, the P4's largest cache line, so DMA engines
+     * that write into the shadow -- the PPA, whose output buffer must be
+     * cache-line aligned -- can take it as it is. heap_caps_malloc()
+     * promises less. 720 x 1280 x 2 is a multiple of 128, so the size
+     * is aligned too. */
+    s_fb = heap_caps_aligned_alloc(128, (size_t)w * h * sizeof(uint16_t),
+                                   MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
     ESP_RETURN_ON_FALSE(s_fb, ESP_ERR_NO_MEM, TAG, "no room for the shadow buffer");
     memset(s_fb, 0, (size_t)w * h * sizeof(uint16_t));
 
