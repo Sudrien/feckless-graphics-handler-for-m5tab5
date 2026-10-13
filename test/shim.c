@@ -30,6 +30,17 @@ void *heap_caps_malloc(size_t sz, uint32_t caps)
     return p;
 }
 void *heap_caps_calloc(size_t n, size_t sz, uint32_t caps) { (void)caps; return calloc(n, sz); }
+void *heap_caps_aligned_alloc(size_t align, size_t sz, uint32_t caps)
+{
+    (void)caps;
+    /* C11's: the size a multiple of the alignment, and free()able. And
+     * remembered as heap_caps_malloc() remembers, because since the
+     * shadow buffer went 128-byte aligned this is the call gfx_init()
+     * makes for it. */
+    void *p = aligned_alloc(align, (sz + align - 1) / align * align);
+    if (p && sz > shim_last_big_size) { shim_last_big_alloc = p; shim_last_big_size = sz; }
+    return p;
+}
 void  heap_caps_free(void *p) { free(p); }
 
 esp_err_t esp_lcd_panel_draw_bitmap(esp_lcd_panel_handle_t p, int x0, int y0,
