@@ -56,8 +56,9 @@ so it is the application's; without it underruns log as stock IDF does.
 
 **Ship the font licences.** Ark Pixel is OFL-1.1: `fonts/ark12/LICENSE-OFL`
 goes with any redistribution of firmware built with it. Arabixel Basic's
-table is CC BY 4.0 (`fonts/arabixel/LICENSE.txt`). Everything else here
-is MIT.
+table is CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/; `fonts/arabixel/LICENSE.txt`) and
+keeps its credit and change note. Everything else here, the Arabic
+shaping code in `fonts/arabixel` included, is MIT.
 
 ## The fonts
 
@@ -77,4 +78,6 @@ make -C test
 
 ## Licence
 
-MIT, except the fonts as above. See `LICENSE`.
+MIT (`LICENSE`), except the font data as above: `fonts/ark12` is
+OFL-1.1, and `fonts/arabixel/Arabixel_Basic.ttf` and `arabixel_tab.c` are
+CC BY 4.0.

@@ -5,7 +5,8 @@ the shaping that picks which glyph each letter of a word needs.
 
 Upstream: https://arabiandev.itch.io/arabixel-basic-font
 Arabixel Basic (c) 2024 ArabianDev. Creative Commons Attribution 4.0
-International (CC BY 4.0). `LICENSE.txt` is the font's own, unchanged.
+International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/.
+`LICENSE.txt` is the font's own, unchanged.
 
 ## Licence
 
