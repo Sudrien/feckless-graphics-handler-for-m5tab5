@@ -527,8 +527,11 @@ static void test_poly_basics(void)
  */
 /* 6050: General Punctuation (U+2000-206F) added, 36 glyphs. Outside
  * that block the count and hash are still 20669 and 0x8EE1A15E. */
-#define ARK12_GOLDEN_COUNT  20705
-#define ARK12_GOLDEN_HASH   0xBB4F22F3u
+/* Number Forms (U+2150-218F) added, 60 glyphs, for the player's
+ * 16⅔ and 33⅓. Outside that block the count and hash are still 20705
+ * and 0xBB4F22F3 -- checked when it was added. */
+#define ARK12_GOLDEN_COUNT  20765
+#define ARK12_GOLDEN_HASH   0x6386F32Bu
 
 static void test_font_unchanged_by_tiling(void)
 {
