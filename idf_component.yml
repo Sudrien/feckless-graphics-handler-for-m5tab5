@@ -4,7 +4,7 @@ description: >-
   RGB565 framebuffer with a DMA2D blit, Ark Pixel 12px text with
   CJK, Arabic shaping and right-to-left lines.
 url: https://github.com/Sudrien/feckless-graphics-handler-for-m5tab5
-license: MIT
+license: "MIT AND OFL-1.1 AND CC-BY-4.0"
 
 dependencies:
   idf:
