@@ -71,6 +71,32 @@ Latin Extended-B and Latin Extended Additional (Vietnamese) are
 available upstream and excluded here. Add the range to `RANGES` in
 `tools/gen_ark12.py` and rerun.
 
+## Notes: glyphs drawn here, not by Ark
+
+One glyph in the table is not Ark's, and it sits in the Private Use
+Area so it can never be mistaken for a character Ark (or Unicode) means
+something by:
+
+| Codepoint | Glyph | For | Drawn from |
+|---|---|---|---|
+| U+E000 | 3/2, stacked like ½ and ⅔ | the player's Fx sheet, its 1.5 gain step (6097) | ⅔ (U+2154) with its small 3 moved up to where the 2 was and ½'s small 2 set where the 3 was; the slash is ⅔'s |
+
+Why not a real codepoint: Unicode encodes ⅓ ⅔ ½ ¼ and a few others as
+single characters and leaves every other fraction to U+2044 FRACTION
+SLASH between ordinary digits -- three full-size glyphs, and Ark draws
+no U+2044 at this size anyway. A stacked 3/2 has no codepoint to have.
+
+`tools/gen_ark12.py` builds it (`add_hand()`) from the glyphs it already
+has, on every path -- `--reencode`, `--src` and the download -- so a
+regeneration keeps it and an ARK_COMMIT bump that redraws ⅔ redraws it
+to match. It added no tiles (every 6×6 corner of it already existed
+elsewhere) and 16 bytes of runs and tile numbers. It is under the
+OFL like the rest of these files: made from Ark's strokes, it is a
+Modified Version of them.
+
+Text that uses it writes `"\uE000"`; anything that logs such a label
+should print something else, since a terminal has no glyph for it.
+
 ## Regenerating
 
     ./tools/gen_ark12.py

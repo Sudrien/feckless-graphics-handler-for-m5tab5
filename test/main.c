@@ -530,8 +530,11 @@ static void test_poly_basics(void)
 /* Number Forms (U+2150-218F) added, 60 glyphs, for the player's
  * 16⅔ and 33⅓. Outside that block the count and hash are still 20705
  * and 0xBB4F22F3 -- checked when it was added. */
-#define ARK12_GOLDEN_COUNT  20765
-#define ARK12_GOLDEN_HASH   0x6386F32Bu
+/* U+E000, 3/2, drawn by gen_ark12.py from ⅔ and ½ for the player's Fx
+ * sheet. Every other glyph is unchanged: with U+E000 left out the new
+ * table decodes to exactly the old one's glyphs. */
+#define ARK12_GOLDEN_COUNT  20766
+#define ARK12_GOLDEN_HASH   0x7B9758BCu
 
 static void test_font_unchanged_by_tiling(void)
 {

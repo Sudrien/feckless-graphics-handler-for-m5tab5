@@ -569,6 +569,34 @@ def reencode(cfile: str) -> dict[int, tuple[int, list[int]]]:
     return out
 
 
+# Glyphs Ark does not have and the player needs, drawn here from Ark's
+# own strokes so they sit with the rest. Private Use Area, because what
+# they are has no codepoint: Unicode encodes ⅓ ⅔ ½ as characters and
+# leaves every other fraction to U+2044 FRACTION SLASH between ordinary
+# digits, which is three full-size glyphs, not one.
+#
+#   U+E000  3/2 -- the Fx sheet's 1.5 gain (the player's 6097), in the
+#           form of its neighbours ½ and ⅔. Built from ⅔ (U+2154): its
+#           small 3 moved up to where the 2 was, and ½'s small 2 (the
+#           same strokes as ⅔'s) set where the 3 was; the slash is ⅔'s.
+#
+# Taken from the glyphs already in hand, so --reencode and --src give
+# the same result, and a bump of ARK_COMMIT that redraws ⅔ redraws this.
+PUA_THREE_HALVES = 0xE000
+
+
+def add_hand(glyphs: dict[int, tuple[int, list[int]]]) -> None:
+    w, two_thirds = glyphs[0x2154]
+    rows = list(two_thirds)
+    top = [(rows[y] >> 0) & 0xF for y in range(1, 7)]      # small 2, cols 0-3
+    bot = [(rows[y] >> 7) & 0xF for y in range(6, 12)]     # small 3, cols 7-10
+    for i, y in enumerate(range(1, 7)):
+        rows[y] = (rows[y] & ~0xF) | bot[i]
+    for i, y in enumerate(range(6, 12)):
+        rows[y] = (rows[y] & ~(0xF << 7)) | (top[i] << 7)
+    glyphs[PUA_THREE_HALVES] = (w, rows)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--src", help="an ark-pixel-font checkout; downloads if absent")
@@ -579,10 +607,15 @@ def main() -> None:
     args = ap.parse_args()
 
     if args.reencode:
-        emit(reencode(args.reencode), args.out, "a local checkout")
+        g = reencode(args.reencode)
+        g.pop(PUA_THREE_HALVES, None)       # rebuilt, not carried over
+        add_hand(g)
+        emit(g, args.out, "a local checkout")
         return
     if args.src:
-        emit(collect(args.src), args.out, "a local checkout")
+        g = collect(args.src)
+        add_hand(g)
+        emit(g, args.out, "a local checkout")
         return
 
     print(f"fetching {ARK_URL}", file=sys.stderr)
@@ -591,7 +624,9 @@ def main() -> None:
         with zipfile.ZipFile(io.BytesIO(blob)) as z:
             z.extractall(tmp)
         root = os.path.join(tmp, os.listdir(tmp)[0])
-        emit(collect(root), args.out, ARK_COMMIT)
+        g = collect(root)
+        add_hand(g)
+        emit(g, args.out, ARK_COMMIT)
 
 
 if __name__ == "__main__":
