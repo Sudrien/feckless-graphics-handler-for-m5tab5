@@ -1,4 +1,4 @@
-version: "0.2.4"
+version: "0.2.5"
 description: >-
   The M5Stack Tab5's ST7121 panel and backlight, and gfx: a rotating
   RGB565 framebuffer with a DMA2D blit, Ark Pixel 12px text with
