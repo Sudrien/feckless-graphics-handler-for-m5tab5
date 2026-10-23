@@ -39,7 +39,7 @@ static const char *TAG = "tab5_lcd";
  *
  * Documented floor is 480 and the ceiling on this part is 1500.
  */
-#define DSI_LANE_RATE_MBPS      (700)
+#define DSI_LANE_RATE_MBPS      (770)
 /*
  * Back to 70 MHz, which is ~57.3 Hz. 29 MHz blanked the panel.
  *
@@ -112,7 +112,25 @@ static const char *TAG = "tab5_lcd";
  * and shrinking that carries no risk of anything going dark. Do that
  * first.
  */
-#define DPI_CLOCK_MHZ           (70)
+/*
+ * What the clock really is. The DPI clock is PLL_F240M divided by an
+ * integer, rounded (mipi_dsi_hal_host_dpi_calculate_divider, the same
+ * in IDF 5.5 and 6.1): 240 / 70 = 3.43 -> 3 -> 80 MHz. So the "70" this
+ * used to ask for has always run at 80. IDF 5.5 says nothing and runs
+ * the panel at 80e6 / (802 x 1524) = 65.4 Hz; IDF 6.1 warns
+ *
+ *   DPI clock adjusted from 70.00 MHz to 80.00 MHz, compensated hfp=155
+ *
+ * and stretches the front porch to keep 57.3 Hz. Asked for as a clock
+ * the divider can make, with the porch set here, both IDFs run the
+ * same timing and neither has anything to adjust.
+ *
+ * 80 MHz, hfp 155, lane 770 Mbps:
+ *   refresh = 80 MHz / ((720 + 2 + 40 + 155) x 1524)
+ *   lane need = 80 x 16 / 2 = 640 Mbps; 770 is 20% over that
+ */
+#define DPI_HFP                 (155)
+#define DPI_CLOCK_MHZ           (80)
 
 #define DSI_PHY_LDO_CHAN        (3)
 #define DSI_PHY_LDO_VOLTAGE_MV  (2500)
@@ -247,7 +265,7 @@ static esp_err_t panel_init(void)
         .num_fbs = 1,
         .video_timing = {
             .h_size = LCD_H_RES, .v_size = LCD_V_RES,
-            .hsync_pulse_width = 2,  .hsync_back_porch = 40, .hsync_front_porch = 40,
+            .hsync_pulse_width = 2,  .hsync_back_porch = 40, .hsync_front_porch = DPI_HFP,
             .vsync_pulse_width = 20, .vsync_back_porch = 24, .vsync_front_porch = 200,
         },
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
