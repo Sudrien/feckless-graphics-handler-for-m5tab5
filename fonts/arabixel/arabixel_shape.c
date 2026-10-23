@@ -71,9 +71,30 @@ static const struct { uint16_t iso; uint8_t type; } LETTERS[0x64A - 0x621 + 1] =
     [0x64A - 0x621] = { 0xFEF1, D },   /* yeh */
 };
 
+/* The Persian letters outside U+0621..U+064A, whose forms are in
+ * Presentation Forms-A and drawn by tools/gen_arabixel.py from the
+ * font's own glyphs (the font has none of them). */
+static const struct { uint16_t cp, iso; uint8_t type; } PERSIAN[] = {
+    { 0x067E, 0xFB56, D },   /* peh */
+    { 0x0686, 0xFB7A, D },   /* tcheh */
+    { 0x0698, 0xFB8A, R },   /* jeh */
+    { 0x06A9, 0xFB8E, D },   /* keheh */
+    { 0x06AF, 0xFB92, D },   /* gaf */
+    { 0x06CC, 0xFBFC, D },   /* farsi yeh */
+};
+
+static int persian(uint32_t cp)
+{
+    for (unsigned i = 0; i < sizeof(PERSIAN) / sizeof(PERSIAN[0]); i++)
+        if (PERSIAN[i].cp == cp) return (int)i;
+    return -1;
+}
+
 static int type_of(uint32_t cp)
 {
-    return (cp >= 0x621 && cp <= 0x64A) ? LETTERS[cp - 0x621].type : U;
+    if (cp >= 0x621 && cp <= 0x64A) return LETTERS[cp - 0x621].type;
+    const int p = persian(cp);
+    return p >= 0 ? PERSIAN[p].type : U;
 }
 
 static bool is_mark(uint32_t cp)
@@ -137,7 +158,9 @@ int arabixel_shape(uint32_t *run, int n)
         const int nt = type_of(next);
         const bool joins_next = (t == D || t == C) &&
                                 (nt == D || nt == R || nt == C);
-        const uint16_t iso = (cp >= 0x621 && cp <= 0x64A) ? LETTERS[cp - 0x621].iso : 0;
+        const int pi = persian(cp);
+        const uint16_t iso = (cp >= 0x621 && cp <= 0x64A) ? LETTERS[cp - 0x621].iso
+                           : pi >= 0 ? PERSIAN[pi].iso : 0;
         uint32_t g = cp;
         if (iso) {
             if (t == D)

@@ -661,6 +661,25 @@ static void test_arabic(void)
     shape_check("digits", (const uint32_t[]){ 0x645, ' ', 0x661, 0x662, 0x663 }, 5,
                 (const uint32_t[]){ 0x661, 0x662, 0x663, ' ', 0xFEE1 }, 5);
 
+    /* Persian: "shercast", sheen ain reh, space, keheh seen teh -- the
+     * title that drew keheh as a box. Keheh initial, seen medial, teh
+     * final; reversed. */
+    shape_check("keheh", (const uint32_t[]){ 0x634, 0x639, 0x631, ' ', 0x6A9, 0x633, 0x62A }, 7,
+                (const uint32_t[]){ 0xFE96, 0xFEB4, 0xFB90, ' ', 0xFEAE, 0xFECC, 0xFEB7 }, 7);
+    /* jeh joins nothing after; farsi yeh final after it is isolated */
+    shape_check("jeh", (const uint32_t[]){ 0x67E, 0x698, 0x6CC }, 3,
+                (const uint32_t[]){ 0xFBFC, 0xFB8B, 0xFB58 }, 3);
+    {
+        static const uint16_t fa[] = { 0xFB56, 0xFB7A, 0xFB8E, 0xFB92, 0xFBFC };
+        for (size_t i = 0; i < sizeof(fa) / sizeof(fa[0]); i++)
+            for (int k = 0; k < 4; k++)
+                CHECK(arabixel_find(fa[i] + k) != NULL, "no glyph for U+%04X", fa[i] + k);
+        CHECK(arabixel_find(0xFB8A) && arabixel_find(0xFB8B), "no glyph for jeh");
+        static const uint16_t base[] = { 0x067E, 0x0686, 0x0698, 0x06A9, 0x06AF, 0x06CC };
+        for (size_t i = 0; i < sizeof(base) / sizeof(base[0]); i++)
+            CHECK(arabixel_find(base[i]) != NULL, "no glyph for U+%04X", base[i]);
+    }
+
     /* Every form arabixel_shape() can produce is in the table: the
      * isolated form and its three others for a dual-joining letter. */
     static const uint16_t iso[] = { 0xFE80, 0xFE81, 0xFE83, 0xFE85, 0xFE87, 0xFE89,

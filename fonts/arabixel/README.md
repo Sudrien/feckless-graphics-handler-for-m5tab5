@@ -26,10 +26,26 @@ condition on the code it is compiled with.
 
 The Arabic block's letters, hamza forms, Arabic and Persian digits and
 punctuation, and every joined form in Presentation Forms-B, lam-alef
-included. Not the Persian and Urdu letters پ چ ژ گ ک ی ے -- the font
-does not have them, so they draw as boxes -- and not the vowel marks,
-which `arabixel_shape()` drops because gfx.c places glyphs side by side
-and never one over another.
+included. And the Persian letters پ چ ژ ک گ ی, which the font does not
+have, drawn from its own glyphs by `tools/gen_arabixel.py` (below). Not
+Urdu's ے and the others outside those six -- they draw as boxes -- and
+not the vowel marks, which `arabixel_shape()` drops because gfx.c places
+glyphs side by side and never one over another.
+
+## Drawn here, not by ArabianDev
+
+Each is a copy of the nearest Arabic letter's form, edited in the
+generator's DRAWN table, and they fall under the table's CC BY 4.0 as
+the rest of it does. **No Persian reader has checked them yet.**
+
+| Letter | From | How |
+|---|---|---|
+| پ peh | ب beh | three dots below for one |
+| چ tcheh | ج jeem | three dots for one; the **final** form is jeem's own, dot and all |
+| ژ jeh | ز zain | three dots above for one |
+| ک keheh | ك kaf | initial and medial are kaf's; isolated and final lose kaf's inner mark and gain a slant at the top |
+| گ gaf | ک keheh | a second slant (isolated, final) or bar (initial, medial) |
+| ی farsi yeh | ى ي | alef maksura's isolated and final, yeh's initial and medial: the same shapes |
 
 ## Regenerating
 
