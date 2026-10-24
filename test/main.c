@@ -537,6 +537,9 @@ static void test_poly_basics(void)
  * glyphs, so a Korean title draws. Outside those two blocks the count
  * and hash are still 20766 and 0x7B9758BC -- checked when it was added:
  * not one of Ark's glyphs moved. */
+/* The tables became 4x6 tiles kept only where they change from the
+ * previous glyph's (ark12.h), 441427 -> 382580 bytes. No glyph moved: the
+ * count and hash below are the ones before, checked when it was done. */
 #define ARK12_GOLDEN_COUNT  32032
 #define ARK12_GOLDEN_HASH   0x36285A88u
 

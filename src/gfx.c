@@ -773,7 +773,7 @@ void gfx_draw_pct_centred(int cx, int y, int pct, uint16_t c)
  * them, matching ark12_glyph()'s own contract for a failed lookup.
  *
  * 5247: the rows are carried, not pointed at. The font is stored as
- * shared 6x6 tiles now (ark12.h), so a glyph's twelve rows exist only
+ * shared tiles now (ark12.h), so a glyph's twelve rows exist only
  * once assembled -- 24 bytes, by value.
  */
 typedef struct {

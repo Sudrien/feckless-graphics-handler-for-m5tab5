@@ -46,9 +46,12 @@ syllables being made of the same letters -- the table going from
 
 ## Coverage
 
-**20,705 glyphs, about 334 KB of flash** -- stored since 5247 as shared
-6×6 tiles (81,712 tiles, 33,775 distinct), where one 16-bit value per
-row took about 545 KB. Two cell sizes, and the table records which each
+**32,032 glyphs, 382,580 bytes of flash** -- stored as shared 4×6 tiles
+(192,192 tiles, 23,711 distinct) where a glyph keeps a tile only where it
+differs from the glyph before it (141,127 kept), one rule for every script.
+Before that, shared 6×6 tiles took 441,427 bytes (5247), and one 16-bit
+value per row took about 864 KB. See the header of `ark12.h` for the
+layout. Two cell sizes, and the table records which each
 glyph is rather than inferring it from the codepoint:
 
 - **6×12 halfwidth** (554 glyphs) — Basic Latin (U+0020–U+007E),
@@ -61,10 +64,10 @@ glyph is rather than inferring it from the codepoint:
 
 CJK Unified is the bulk of that: 18,299 codepoints, effectively the whole
 block. It is also the obvious thing to cut if the app partition ever gets
-tight — dropping `(0x4E00, 0x9FFF)` from `RANGES` took the row-per-scanline
-table to about 62 KB (less as tiles; the generator prints the figure) while keeping every Latin, Cyrillic, kana and fullwidth-punctuation
-glyph. (62 and not nearer 20: Extension A is 1,480 codepoints of its own
-and stays behind.)
+tight — dropping `(0x4E00, 0x9FFF)` from `RANGES` takes the table to
+114,189 bytes (the generator prints the figure) while keeping every Latin,
+Cyrillic, kana, Hangul and fullwidth-punctuation glyph. (Not nearer 20 KB:
+Extension A is 1,480 codepoints of its own, and Hangul is 11,266 more.)
 
 The five Latin-1 characters that were missing at 10px — © ® ¼ ½ ¾ — are
 present now. They are drawn fullwidth by Ark, which the old
@@ -104,8 +107,8 @@ no U+2044 at this size anyway. A stacked 3/2 has no codepoint to have.
 `tools/gen_ark12.py` builds it (`add_hand()`) from the glyphs it already
 has, on every path -- `--reencode`, `--src` and the download -- so a
 regeneration keeps it and an ARK_COMMIT bump that redraws ⅔ redraws it
-to match. It added no tiles (every 6×6 corner of it already existed
-elsewhere) and 16 bytes of runs and tile numbers. It is under the
+to match. It added no distinct tiles (every 4×6 strip of it already
+existed elsewhere) and 18 bytes in all. It is under the
 OFL like the rest of these files: made from Ark's strokes, it is a
 Modified Version of them.
 
