@@ -28,11 +28,13 @@ SPDX-License-Identifier: MIT
 """
 
 import argparse
+import hashlib
 import io
 import os
 import re
 import struct
 import sys
+import tarfile
 import tempfile
 import urllib.request
 import zipfile
@@ -43,6 +45,25 @@ import zlib
 # apart must get the same bytes out.
 ARK_COMMIT = "d8bd8345fd80f8cf48527aac7718ee1e280870aa"
 ARK_URL = f"https://codeload.github.com/TakWolf/ark-pixel-font/zip/{ARK_COMMIT}"
+
+# Korean, from Galmuri (https://github.com/quiple/galmuri), because Ark
+# has no Hangul Syllables at this size -- see "Hangul is still out"
+# below, which is still true of Ark. Galmuri11 is a 12px pixel font with
+# every one of the 11,172 syllables and the 94 Compatibility Jamo, each
+# 12px wide, standing 10-11 rows on its baseline: the same cell, and the
+# same rows (1-11), that Ark's CJK uses. OFL-1.1 with no Reserved Font
+# Name, Copyright (c) 2019-2025 Lee Minseo; fonts/ark12/LICENSE-OFL-galmuri
+# is its licence and ships as Ark's does. Pinned to a release and its
+# npm tarball's sha256, read from the BDF in it -- a bitmap format, so
+# the pixels are the drawn ones, not a rasterisation.
+GALMURI_VERSION = "2.40.3"
+GALMURI_URL = f"https://registry.npmjs.org/galmuri/-/galmuri-{GALMURI_VERSION}.tgz"
+GALMURI_SHA256 = "7d6b2b8534d157dd5e4eb8e01145f7388c0383bed8a96f5ec719eaacf1f86816"
+GALMURI_BDF = "package/dist/Galmuri11.bdf"
+GALMURI_RANGES = [
+    (0x3131, 0x318E),  # Hangul Compatibility Jamo (the letters)
+    (0xAC00, 0xD7A3),  # Hangul Syllables
+]
 
 # The subset. Two widths coexist here, not one: Ark ships glyphs at this
 # pixel size in three cuts -- "monospaced" (6x12, one cell), "common"
@@ -62,7 +83,8 @@ ARK_URL = f"https://codeload.github.com/TakWolf/ark-pixel-font/zip/{ARK_COMMIT}"
 # all. Nothing clever happened here; the data simply exists at this size
 # and did not at the last one.
 #
-# Hangul is still out, and for an unchanged reason: the Compatibility Jamo
+# Hangul is still out OF ARK, and for an unchanged reason (it comes from
+# Galmuri instead -- GALMURI_* above): the Compatibility Jamo
 # block (individual letters) exists, but Hangul Syllables -- the composed
 # characters real Korean text is written in -- has no glyphs at this size
 # either. Jamo alone cannot render a Korean title; Unicode's algorithmic
@@ -304,6 +326,12 @@ HEADER = """/*
  * Copyright (c) 2021, TakWolf (https://takwolf.com).
  * Licensed under the SIL Open Font License, Version 1.1.
  *
+ * Hangul (U+3131-318E, U+AC00-D7A3): Galmuri11 {galmuri}
+ * https://github.com/quiple/galmuri
+ * Copyright (c) 2019-2025 Lee Minseo (quiple@quiple.dev).
+ * Licensed under the SIL Open Font License, Version 1.1; its text is
+ * fonts/ark12/LICENSE-OFL-galmuri, and ships as LICENSE-OFL does.
+ *
  * NOTE ON LICENSING: the rest of this project is MIT. This file is not,
  * and cannot be. It is a format conversion of OFL-licensed Font Software,
  * which makes it a Modified Version under the OFL, and OFL section 5
@@ -408,8 +436,9 @@ SOURCE = """/*
  * GENERATED FILE. Do not edit. Regenerate with ./tools/gen_ark12.py
  * from ark-pixel-font @ {commit}.
  *
- * Ark Pixel Font, Copyright (c) 2021, TakWolf. See ark12.h and
- * LICENSE-OFL. This file is OFL-1.1, not MIT.
+ * Ark Pixel Font, Copyright (c) 2021, TakWolf. Hangul from Galmuri11
+ * {galmuri}, Copyright (c) 2019-2025 Lee Minseo. See ark12.h, LICENSE-OFL
+ * and LICENSE-OFL-galmuri. This file is OFL-1.1, not MIT.
  *
  * SPDX-License-Identifier: OFL-1.1
  */
@@ -499,12 +528,12 @@ def emit(glyphs: dict[int, tuple[int, list[int]]], outdir: str, commit: str) -> 
 
     os.makedirs(outdir, exist_ok=True)
     with open(os.path.join(outdir, "ark12.h"), "w") as f:
-        f.write(HEADER.format(commit=commit, h=GLYPH_H, half=HALF_W, full=FULL_W,
+        f.write(HEADER.format(commit=commit, galmuri=GALMURI_VERSION, h=GLYPH_H, half=HALF_W, full=FULL_W,
                               full_desc="CJK-adjacent scripts and fullwidth forms",
                               count=len(order), tiles=len(tiles), runs=len(runs),
                               tiles_total=len(tix), bytes=total, old_bytes=old))
     with open(os.path.join(outdir, "ark12.c"), "w") as f:
-        f.write(SOURCE.format(commit=commit, runs=runs_c, ntix=len(tix), tix=tix_c,
+        f.write(SOURCE.format(commit=commit, galmuri=GALMURI_VERSION, runs=runs_c, ntix=len(tix), tix=tix_c,
                               ntilebytes=len(tilebytes), tilebytes=tb_c))
 
     print(f"{len(order)} glyphs ({n_half} halfwidth, {n_full} fullwidth) in "
@@ -516,7 +545,7 @@ def emit(glyphs: dict[int, tuple[int, list[int]]], outdir: str, commit: str) -> 
     # that the font does not draw at this size produces a working build
     # and no glyphs, and nothing else here would say so.
     print("  per range:", file=sys.stderr)
-    for lo, hi in RANGES:
+    for lo, hi in RANGES + GALMURI_RANGES:
         n = sum(1 for cp in order if lo <= cp <= hi)
         flag = "   <-- EMPTY, is this range drawn at this size?" if n == 0 else ""
         print(f"    U+{lo:04X}..U+{hi:04X}  {n:6d}{flag}", file=sys.stderr)
@@ -585,6 +614,57 @@ def reencode(cfile: str) -> dict[int, tuple[int, list[int]]]:
 PUA_THREE_HALVES = 0xE000
 
 
+def galmuri_bdf(path: str | None) -> str:
+    """Galmuri11's BDF as text: from `path`, or the pinned npm tarball."""
+    if path:
+        return open(path, encoding="utf-8").read()
+    print(f"fetching {GALMURI_URL}", file=sys.stderr)
+    blob = urllib.request.urlopen(GALMURI_URL).read()
+    got = hashlib.sha256(blob).hexdigest()
+    if got != GALMURI_SHA256:
+        sys.exit(f"galmuri {GALMURI_VERSION}: sha256 {got}, expected {GALMURI_SHA256}")
+    with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as t:
+        return t.extractfile(GALMURI_BDF).read().decode("utf-8")
+
+
+def add_galmuri(glyphs: dict[int, tuple[int, list[int]]], bdf: str) -> None:
+    """Galmuri11's Hangul into `glyphs`, fullwidth, in Ark's CJK rows.
+
+    BDF rows run top to bottom, MSB leftmost, from a box BBX w h xoff yoff
+    over a baseline at y = 0. Galmuri's baseline goes on row 11 -- where
+    Ark's CJK feet are -- so font row y is cell row 11 - y. Every glyph in
+    GALMURI_RANGES must fit the 12x12 cell whole; one that does not stops
+    the run rather than being cut.
+    """
+    wanted = {cp for lo, hi in GALMURI_RANGES for cp in range(lo, hi + 1)}
+    taken = 0
+    for m in re.finditer(r"ENCODING (-?\d+)\n.*?BBX (-?\d+) (-?\d+) (-?\d+) (-?\d+)\n"
+                         r"BITMAP\n(.*?)ENDCHAR", bdf, re.S):
+        cp = int(m.group(1))
+        if cp not in wanted:
+            continue
+        w, h, xo, yo = (int(m.group(i)) for i in range(2, 6))
+        lines = m.group(6).split()
+        rows = [0] * GLYPH_H
+        for k, line in enumerate(lines[:h]):
+            y = yo + h - 1 - k
+            r = (GLYPH_H - 1) - y
+            bits = int(line, 16)
+            nbits = len(line) * 4
+            for x in range(w):
+                if bits >> (nbits - 1 - x) & 1:
+                    cx = xo + x
+                    if not (0 <= r < GLYPH_H and 0 <= cx < FULL_W):
+                        sys.exit(f"galmuri U+{cp:04X}: pixel ({cx},{r}) is outside the "
+                                 f"{FULL_W}x{GLYPH_H} cell")
+                    rows[r] |= 1 << cx
+        glyphs[cp] = (FULL_W, rows)
+        taken += 1
+    missing = len(wanted) - taken
+    print(f"galmuri {GALMURI_VERSION}: {taken} Hangul glyphs"
+          + (f", {missing} of the requested not in it" if missing else ""), file=sys.stderr)
+
+
 def add_hand(glyphs: dict[int, tuple[int, list[int]]]) -> None:
     w, two_thirds = glyphs[0x2154]
     rows = list(two_thirds)
@@ -602,6 +682,8 @@ def main() -> None:
     ap.add_argument("--src", help="an ark-pixel-font checkout; downloads if absent")
     ap.add_argument("--reencode", metavar="ARK12_C",
                     help="take the glyphs from an ark12.c written before (5247)")
+    ap.add_argument("--galmuri", metavar="BDF",
+                    help="Galmuri11.bdf; fetches the pinned release if absent")
     ap.add_argument("--out", default=os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "..", "fonts", "ark12"))
     args = ap.parse_args()
@@ -609,11 +691,13 @@ def main() -> None:
     if args.reencode:
         g = reencode(args.reencode)
         g.pop(PUA_THREE_HALVES, None)       # rebuilt, not carried over
+        add_galmuri(g, galmuri_bdf(args.galmuri))
         add_hand(g)
         emit(g, args.out, "a local checkout")
         return
     if args.src:
         g = collect(args.src)
+        add_galmuri(g, galmuri_bdf(args.galmuri))
         add_hand(g)
         emit(g, args.out, "a local checkout")
         return
@@ -625,6 +709,7 @@ def main() -> None:
             z.extractall(tmp)
         root = os.path.join(tmp, os.listdir(tmp)[0])
         g = collect(root)
+        add_galmuri(g, galmuri_bdf(args.galmuri))
         add_hand(g)
         emit(g, args.out, ARK_COMMIT)
 

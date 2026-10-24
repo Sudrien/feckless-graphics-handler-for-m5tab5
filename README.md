@@ -55,7 +55,9 @@ DSI underrun ISR's log call with a counter (its
 so it is the application's; without it underruns log as stock IDF does.
 
 **Ship the font licences.** Ark Pixel is OFL-1.1: `fonts/ark12/LICENSE-OFL`
-goes with any redistribution of firmware built with it. Arabixel Basic's
+goes with any redistribution of firmware built with it. So does
+`fonts/ark12/LICENSE-OFL-galmuri`: the table's Hangul is Galmuri11 by
+Lee Minseo (https://github.com/quiple/galmuri), OFL-1.1 too. Arabixel Basic's
 table is CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/; `fonts/arabixel/LICENSE.txt`) and
 keeps its credit and change note. Everything else here, the Arabic
 shaping code in `fonts/arabixel` included, is MIT.
@@ -63,7 +65,8 @@ shaping code in `fonts/arabixel` included, is MIT.
 ## The fonts
 
 Both tables are generated and committed. `tools/gen_ark12.py` cuts Ark
-Pixel's glyph PNGs at a pinned commit (`ARK_COMMIT`) into
+Pixel's glyph PNGs at a pinned commit (`ARK_COMMIT`), with Galmuri11's
+Hangul from its pinned release (`GALMURI_VERSION`, by sha256), into
 `fonts/ark12/`; `tools/gen_arabixel.py` turns `Arabixel_Basic.ttf` into
 `fonts/arabixel/arabixel_tab.c`. Each script says why it exists.
 
@@ -79,5 +82,5 @@ make -C test
 ## Licence
 
 MIT (`LICENSE`), except the font data as above: `fonts/ark12` is
-OFL-1.1, and `fonts/arabixel/Arabixel_Basic.ttf` and `arabixel_tab.c` are
+OFL-1.1 (Ark Pixel, and Galmuri for the Hangul), and `fonts/arabixel/Arabixel_Basic.ttf` and `arabixel_tab.c` are
 CC BY 4.0.

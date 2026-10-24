@@ -29,6 +29,21 @@ the Original Version and should not be mistaken for it.
 This is the difference from the `font8x8` component it replaces: that
 font was public domain, so nothing had to travel with it.
 
+## Hangul: Galmuri11
+
+Ark has no Hangul Syllables at 12px, so the table's Korean --
+Compatibility Jamo U+3131-318E (94) and Hangul Syllables U+AC00-D7A3
+(all 11,172) -- is **Galmuri11 2.40.3** by Lee Minseo,
+https://github.com/quiple/galmuri, Copyright (c) 2019-2025, also
+OFL-1.1 with no Reserved Font Name. Its licence is `LICENSE-OFL-galmuri`
+and ships with the table as `LICENSE-OFL` does. `tools/gen_ark12.py`
+reads it from the BDF in the release's npm tarball, pinned by sha256,
+and places each glyph on Ark's CJK rows (1-11): every syllable is 12px
+wide and stands 10-11 rows on its baseline, so nothing is cut. The
+11,266 glyphs cost about 96 KB as tiles -- 1,903 new distinct tiles,
+syllables being made of the same letters -- the table going from
+342,720 to 441,427 bytes.
+
 ## Coverage
 
 **20,705 glyphs, about 334 KB of flash** -- stored since 5247 as shared

@@ -533,8 +533,40 @@ static void test_poly_basics(void)
 /* U+E000, 3/2, drawn by gen_ark12.py from ⅔ and ½ for the player's Fx
  * sheet. Every other glyph is unchanged: with U+E000 left out the new
  * table decodes to exactly the old one's glyphs. */
-#define ARK12_GOLDEN_COUNT  20766
-#define ARK12_GOLDEN_HASH   0x7B9758BCu
+/* Hangul from Galmuri11 2.40.3 (U+3131-318E, U+AC00-D7A3), 11266
+ * glyphs, so a Korean title draws. Outside those two blocks the count
+ * and hash are still 20766 and 0x7B9758BC -- checked when it was added:
+ * not one of Ark's glyphs moved. */
+#define ARK12_GOLDEN_COUNT  32032
+#define ARK12_GOLDEN_HASH   0x36285A88u
+
+/* Galmuri's Hangul: every syllable and letter is there, fullwidth, in
+ * the rows Ark's CJK uses (1-11), so a Korean title is not boxes and
+ * lines up with Chinese and Japanese beside it. */
+static void test_hangul(void)
+{
+    printf("Hangul\n");
+    int syl = 0, jamo = 0, wide = 0, rows_ok = 0;
+    for (uint32_t cp = 0x3131; cp <= 0xD7A3; cp++) {
+        const bool want = (cp <= 0x318E) || cp >= 0xAC00;
+        if (!want) continue;
+        uint16_t rows[ARK12_H];
+        int w = -1;
+        if (!ark12_glyph(cp, &w, rows)) continue;
+        if (cp >= 0xAC00) syl++; else jamo++;
+        if (w == ARK12_FULL_W) wide++;
+        if (rows[0] == 0) rows_ok++;            /* row 0 is above the ink, as for Ark's CJK */
+    }
+    CHECK(syl == 11172, "%d of 11172 syllables", syl);
+    CHECK(jamo == 94, "%d of 94 compatibility jamo", jamo);
+    CHECK(wide == 11266, "%d of them fullwidth", wide);
+    CHECK(rows_ok == 11266, "%d with row 0 clear", rows_ok);
+    clear();
+    gfx_draw_text(10, 10, "\xec\x9e\x91\xec\x9d\x80 \xec\x84\x9c\xec\xa0\x90", 1, W - 20, INK);  /* 작은 서점 */
+    int x0, y0, x1, y1;
+    CHECK(ink_bbox(&x0, &y0, &x1, &y1) && y0 >= 11 && y1 <= 21,
+          "Korean drew outside rows 1-11: %d..%d", y0 - 10, y1 - 10);
+}
 
 static void test_font_unchanged_by_tiling(void)
 {
@@ -836,6 +868,7 @@ int main(void)
     }
     gfx_fill_rect(0, 0, W, H, BLANK);
 
+    test_hangul();
     test_width_matches_draw();
     test_max_w_respected();
     test_clip_window();
