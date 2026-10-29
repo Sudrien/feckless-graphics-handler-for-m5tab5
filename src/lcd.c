@@ -298,6 +298,13 @@ static esp_err_t panel_init(void)
 
 esp_err_t lcd_init(esp_lcd_panel_handle_t *out)
 {
+    /* Again is not an error: an app a launcher started on the panel it
+     * had already brought up (feckless-abi-for-m5tab5) calls this as it
+     * would at boot. The panel, and the backlight where it was, stay. */
+    if (s_panel) {
+        if (out) *out = s_panel;
+        return ESP_OK;
+    }
     ESP_RETURN_ON_ERROR(backlight_init(), TAG, "backlight");
     ESP_RETURN_ON_ERROR(panel_init(), TAG, "panel");
     if (out) *out = s_panel;

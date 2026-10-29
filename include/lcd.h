@@ -50,6 +50,9 @@ extern "C" {
  * lcd_backlight_set() once there is a picture worth seeing.
  *
  * `out`, if not NULL, gets the panel handle -- what gfx_init() takes.
+ *
+ * Called again once it has worked, it hands back the same panel and
+ * changes nothing, the backlight included.
  */
 esp_err_t lcd_init(esp_lcd_panel_handle_t *out);
 

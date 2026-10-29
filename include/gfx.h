@@ -51,6 +51,9 @@ extern "C" {
  * every blit here is full-width: a full-width band is contiguous in both
  * buffers and copies in one call.
  */
+/* Called again with the same panel and size, it keeps the buffer and
+ * resets the rest as a first call leaves it: upright, full brightness,
+ * the shadow and the panel black. Another panel is ESP_ERR_INVALID_STATE. */
 esp_err_t gfx_init(esp_lcd_panel_handle_t panel, int w, int h);
 
 /* The shadow, not the panel's own buffer. Safe to draw into at any time. */

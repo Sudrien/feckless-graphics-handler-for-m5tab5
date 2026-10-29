@@ -130,6 +130,27 @@ static SemaphoreHandle_t s_blit_lock;
 
 esp_err_t gfx_init(esp_lcd_panel_handle_t panel, int w, int h)
 {
+    /* Again, on the same panel: as a fresh init leaves it -- upright,
+     * full brightness, the shadow and the panel black -- with the
+     * buffer, locks and callback already there. An app a launcher
+     * started (feckless-abi-for-m5tab5) calls this as it would at boot. */
+    if (s_fb) {
+        ESP_RETURN_ON_FALSE(panel == s_panel && w == s_pw && h == s_ph,
+                            ESP_ERR_INVALID_STATE, TAG, "again, on another panel");
+        xSemaphoreTake(s_blit_lock, portMAX_DELAY);
+        s_rot = 0;
+        s_filter = BRIGHTNESS_FILTER_FULL;
+        s_w = w;
+        s_h = h;
+        memset(s_fb, 0, (size_t)w * h * sizeof(uint16_t));
+        uint16_t *panel_fb = NULL;
+        if (esp_lcd_dpi_panel_get_frame_buffer(panel, 1, (void **)&panel_fb) == ESP_OK) {
+            memset(panel_fb, 0, (size_t)w * h * sizeof(uint16_t));
+        }
+        xSemaphoreGive(s_blit_lock);
+        return ESP_OK;
+    }
+
     s_panel = panel;
     s_pw = w;
     s_ph = h;
